@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Katie Cook" />
+
+<meta name="date" content="2019-02-18" />
+
+<title>Plotting in R</title>
+
+<script src="mapping_markdown_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="mapping_markdown_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="mapping_markdown_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="mapping_markdown_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="mapping_markdown_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="mapping_markdown_files/navigation-1.1/tabsets.js"></script>
+<link href="mapping_markdown_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="mapping_markdown_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Plotting in R</h1>
+<h4 class="author"><em>Katie Cook</em></h4>
+<h4 class="date"><em>18 February 2019</em></h4>
+
+</div>
+
+
+<div id="task" class="section level1">
+<h1>Task</h1>
+<ol style="list-style-type: decimal">
+<li>Download Japanese protected areas from Protected Planet website (<a href="https://www.protectedplanet.net/" class="uri">https://www.protectedplanet.net/</a>) (make sure you choose .shp file) and Unzip to your working directory folder. Download a Japanese map outline from an R package.<br />
+</li>
+<li>Load spatial data into R.</li>
+<li>Filter this data and make a beautiful map!</li>
+<li>Explore other maps</li>
+</ol>
+<div id="using-the-sf-package" class="section level2">
+<h2>Using the SF package</h2>
+<p>The sf package is a new(ish) package for spatial data and analysis in R. You can also use the sp package, but this doesn’t work with dplyr and ggplot functions.</p>
+</div>
+<div id="install-and-library-packages-set-your-working-directory-to-where-your-data-is" class="section level2">
+<h2>1. Install and library packages, set your working directory to where your data is</h2>
+<pre class="r"><code>knitr::opts_chunk$set(message = FALSE)
+chooseCRANmirror(graphics=FALSE, ind=1)
+#first install packages (if you haven&#39;t done this previously)
+
+devtools::install_github(&quot;tidyverse/ggplot2&quot;) #loads in the newest ggplot (for plotting)</code></pre>
+<pre><code>## Downloading GitHub repo tidyverse/ggplot2@master
+## from URL https://api.github.com/repos/tidyverse/ggplot2/zipball/master</code></pre>
+<pre><code>## Installing ggplot2</code></pre>
+<pre><code>## &quot;C:/PROGRA~1/R/R-35~1.1/bin/x64/R&quot; --no-site-file --no-environ --no-save  \
+##   --no-restore --quiet CMD INSTALL  \
+##   &quot;C:/Users/bskmc/AppData/Local/Temp/RtmpIZ62gl/devtoolsd343e467919/tidyverse-ggplot2-033fb52&quot;  \
+##   --library=&quot;M:/R/win-library/3.5&quot; --install-tests</code></pre>
+<pre><code>## </code></pre>
+<pre class="r"><code>## install.packages(&#39;dplyr&#39;) #for data management 
+
+## install.packages(&#39;sf&#39;)  #&#39;simple features&#39; package for plotting and spatial data
+
+## install.packages(&#39;ggspatial&#39;) #an add on to ggplot for spatial mapping
+
+## install.packages(&#39;mapdata&#39;) #has data pre-installed for coastlines etc 
+
+## install.packages(&#39;viridis&#39;) #nice color gradients
+
+
+#now library the packages
+library(ggplot2)
+library(dplyr)</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 3.5.2</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(sf)</code></pre>
+<pre><code>## Warning: package &#39;sf&#39; was built under R version 3.5.2</code></pre>
+<pre><code>## Linking to GEOS 3.6.1, GDAL 2.2.3, PROJ 4.9.3</code></pre>
+<pre class="r"><code>library(ggspatial)</code></pre>
+<pre><code>## Warning: package &#39;ggspatial&#39; was built under R version 3.5.2</code></pre>
+<pre class="r"><code>library(mapdata)</code></pre>
+<pre><code>## Warning: package &#39;mapdata&#39; was built under R version 3.5.2</code></pre>
+<pre><code>## Loading required package: maps</code></pre>
+<pre class="r"><code>library(viridis) </code></pre>
+<pre><code>## Warning: package &#39;viridis&#39; was built under R version 3.5.2</code></pre>
+<pre><code>## Loading required package: viridisLite</code></pre>
+<pre class="r"><code>setwd(&quot;S:/Beger group/Katie Cook/lab_meeting_map/mapping&quot;) # set working directory to where your files are</code></pre>
+</div>
+<div id="loading-in-spatial-data" class="section level2">
+<h2>2. Loading in spatial data</h2>
+<pre class="r"><code>japanPA_point&lt;- st_read(&#39;WDPA_Feb2019_JPN-shapefile-points.shp&#39;) #load in points </code></pre>
+<pre><code>## Reading layer `WDPA_Feb2019_JPN-shapefile-points&#39; from data source `S:\Beger group\Katie Cook\lab_meeting_map\WDPA_Feb2019_JPN-shapefile-points.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 87 features and 26 fields
+## geometry type:  MULTIPOINT
+## dimension:      XY
+## bbox:           xmin: 125.2711 ymin: 24.76583 xmax: 145.35 ymax: 45.08333
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs</code></pre>
+<pre class="r"><code>japanPA_poly&lt;-st_read(&#39;WDPA_Feb2019_JPN-shapefile-polygons.shp&#39;) #load in polygons</code></pre>
+<pre><code>## Reading layer `WDPA_Feb2019_JPN-shapefile-polygons&#39; from data source `S:\Beger group\Katie Cook\lab_meeting_map\WDPA_Feb2019_JPN-shapefile-polygons.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 4839 features and 28 fields
+## geometry type:  MULTIPOLYGON
+## dimension:      XY
+## bbox:           xmin: 122.8993 ymin: 24.02758 xmax: 153.9918 ymax: 45.60053
+## epsg (SRID):    4326
+## proj4string:    +proj=longlat +datum=WGS84 +no_defs</code></pre>
+<pre class="r"><code>japan_coast&lt;- st_as_sf(map(&#39;japan&#39;, plot=FALSE, fill=TRUE)) #get the japan map from mapdata
+
+japan_sites&lt;-read.csv(&#39;jp_waypoints.csv&#39;)
+
+
+#Checking coordinate reference system is really important! Make sure you always do this!
+st_crs(japanPA_point) #checks crs (coordinate reference system)</code></pre>
+<pre><code>## Coordinate Reference System:
+##   EPSG: 4326 
+##   proj4string: &quot;+proj=longlat +datum=WGS84 +no_defs&quot;</code></pre>
+<pre class="r"><code>st_crs(japanPA_poly) </code></pre>
+<pre><code>## Coordinate Reference System:
+##   EPSG: 4326 
+##   proj4string: &quot;+proj=longlat +datum=WGS84 +no_defs&quot;</code></pre>
+<pre class="r"><code>st_crs(japan_coast)   </code></pre>
+<pre><code>## Coordinate Reference System:
+##   EPSG: 4326 
+##   proj4string: &quot;+proj=longlat +datum=WGS84 +no_defs&quot;</code></pre>
+<pre class="r"><code>#all layers have crs EPSG 4326, which is WGS84 - unprojected data - ok. 
+#if they are not the same you will have to use st_transform() to make them the same</code></pre>
+</div>
+<div id="making-spatial-data-and-simple-plots" class="section level2">
+<h2>3. Making spatial data and simple plots</h2>
+<pre class="r"><code>#following on from last week (getting lat lon out of GPS) lets make this spatial 
+japan_sites_sf&lt;-st_as_sf(japan_sites, coords=c(&#39;lon&#39;, &#39;lat&#39;), crs=4326)  #make sure the CRS is the same as your other data!
+
+#now you can plot this as spatial data with attributes 
+plot(japan_sites_sf)</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>#OR (without making it spatial)
+ggplot(japan_sites, aes(x=lon, y=lat))+
+  geom_point()</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<pre class="r"><code>#now we can start plotting - basic plots to check 
+
+plot(japanPA_point) #plots all the attributes</code></pre>
+<pre><code>## Warning: plotting the first 10 out of 26 attributes; use max.plot = 26 to
+## plot all</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-3.png" width="672" /></p>
+<pre class="r"><code>plot(japanPA_point$geometry) #plots just the geometry</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-4.png" width="672" /></p>
+<pre class="r"><code>plot (japanPA_point[&#39;IUCN_CAT&#39;], key.pos = 1, key.width = lcm(1.3), key.length = 1.0, axes=TRUE) # colours points by designation, adds axes, adds key</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-5.png" width="672" /></p>
+<pre class="r"><code>#first lets make a basic map of japan using ggplot 
+plot(japan_coast) # to check what it looks like</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-6.png" width="672" /></p>
+<pre class="r"><code>#plot this using ggplot
+ggplot()+ geom_sf(data=japan_coast)+
+  theme_bw()</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-7.png" width="672" /></p>
+<pre class="r"><code>#can fill map colours by ID 
+ggplot()+ geom_sf(data=japan_coast, aes(fill=ID))+
+  theme_bw()</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-3-8.png" width="672" /></p>
+</div>
+<div id="using-dplyr-and-ggplot" class="section level2">
+<h2>5. Using dplyr and ggplot</h2>
+<pre class="r"><code>#plotting all the polygons takes a long time- lets filter out some using dplyr
+unique(japanPA_poly$MARINE) #gets the unique categories for the MARINE column</code></pre>
+<pre><code>## [1] 0 1
+## Levels: 0 1</code></pre>
+<pre class="r"><code>#1 is marine PAs, 0 is terrestrial PAs
+
+#lets just plot marine PAs , need to filter the data - can use dplyr functions on sf objects
+japan_marinePA&lt;-filter(japanPA_poly, MARINE==1)  
+
+
+#lets use ggplot to make it look nicer 
+plot1&lt;-ggplot(data=japan_marinePA)+
+  geom_sf(color=&#39;cadetblue&#39;, fill=&#39;cadetblue&#39;)+         #plots the MPA shape, outline and fill color
+  labs(title=&#39;Map of Japanese MPAs&#39;, y=&#39;Latitude&#39;, x=&#39;Longtitude&#39;)+ #adds labels
+  theme_bw()+     #background theme
+  annotation_scale(location = &quot;tl&quot;)+   #scale bar (tl= top left) -part of ggspatial package
+  annotation_north_arrow(location = &quot;br&quot;, which_north = &quot;true&quot;) #north arrow, br=bottom right
+
+
+plot1   #calls the plots and plots it- might be quite slow.</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>#adding another layer- japan coast
+
+#japan coastline map has prefecteral boundaries so remove these (like dissolve in arc map)
+japan_coast&lt;- japan_coast %&gt;% st_buffer(0)  #add a buffer around all to make sure there are no gaps</code></pre>
+<pre><code>## Warning in st_buffer.sfc(st_geometry(x), dist, nQuadSegs, endCapStyle =
+## endCapStyle, : st_buffer does not correctly buffer longitude/latitude data</code></pre>
+<pre class="r"><code>japan_merge&lt;-st_union(japan_coast) #merge it together, this creates a non-sf object
+japan_merge&lt;-st_sf(japan_merge)  #put it back to sf 
+plot(japan_merge) #plot to check</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code>#now we can combine the layers
+
+#first create the base map
+plot1&lt;-ggplot(data=japan_merge)+    #the layer you want to plot first
+  geom_sf( fill=&#39;antiquewhite&#39;,color=&#39;antiquewhite&#39;)+         # define outline and fill color
+  labs(title=&#39;Map of Japanese MPAs&#39;, y=&#39;Latitude&#39;, x=&#39;Longtitude&#39;)+ #adds title and axis labels
+  theme(panel.background = element_rect(fill = &quot;lightblue&quot;,colour = &quot;black&quot;,
+                                        size = 0.5, linetype = &quot;solid&quot;), legend.title = element_blank())+     #background colour,legend theme
+  annotation_scale(location = &quot;tl&quot;)+   #scale bar (tl= top left) -part of ggspatial package
+  annotation_north_arrow(location = &quot;br&quot;, which_north = &quot;true&quot;) #north arrow, br=bottom right
+
+#now add the next layer (japanese MPA layer)
+plot1&lt;-plot1+geom_sf(data=japan_marinePA, aes( fill=&#39;cadetblue&#39;), color=&#39;cadetblue&#39;)   #define colours
+   #adds legend 
+
+#finally add your study sites
+plot1&lt;-plot1+geom_sf(data=japan_sites_sf, aes(fill=&#39;red&#39;), color=&#39;red&#39;)+
+  scale_fill_identity( guide = &#39;legend&#39;, labels = c(&#39; Japanese MPAs&#39;, &#39;Study Sites&#39;) ) 
+
+#now plot
+plot1</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-3.png" width="672" /></p>
+<pre class="r"><code>#plot maps with different CRS (UTM 54N)- appropriate projection for japan (Can find this info online)
+ggplot(data = japan_merge) +
+  geom_sf() +
+  coord_sf(crs = &#39;+proj=eqdc +lat_0=0 +lon_0=138 +lat_1=34 +lat_2=40 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs&#39;)+
+  theme_bw()</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-4.png" width="672" /></p>
+<pre class="r"><code>#adding in names 
+
+japan_prefectures&lt;-st_centroid(japan_coast) #gets the centroids of the prefectures (where to put the labels)</code></pre>
+<pre><code>## Warning in st_centroid.sf(japan_coast): st_centroid assumes attributes are
+## constant over geometries of x</code></pre>
+<pre><code>## Warning in st_centroid.sfc(st_geometry(x), of_largest_polygon =
+## of_largest_polygon): st_centroid does not give correct centroids for
+## longitude/latitude data</code></pre>
+<pre class="r"><code>japan_prefectures_coord&lt;-st_coordinates(japan_prefectures) #get the co-ords
+
+japan_prefectures&lt;- cbind(japan_prefectures, japan_prefectures_coord) #bind the co-ords to the sf object
+
+ggplot(data = japan_coast) +
+  geom_sf(col=&#39;gray79&#39;, fill=&#39;antiquewhite&#39;) +
+  geom_text(data= japan_prefectures,aes(x=X, y=Y, label=ID),
+            color = &quot;darkblue&quot;, fontface = &quot;bold&quot;, check_overlap = FALSE, size=1.8) +
+  annotate(geom = &quot;text&quot;, x = 130 , y = 40, label = &quot;Sea of Japan&quot;, 
+           fontface = &quot;italic&quot;, color = &quot;grey22&quot;, size = 4)+
+  theme_bw()+
+  annotation_scale(location = &quot;br&quot;)+  
+  annotation_north_arrow(location = &quot;tl&quot;, which_north = &quot;true&quot;)+
+  labs(x=&#39;Longitude&#39;, y=&#39;Latitude&#39;)</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-5.png" width="672" /></p>
+<pre class="r"><code>#plotting with heatmap 
+#download this: https://simplemaps.com/data/jp-cities
+
+
+jp_cities&lt;-read.csv(&#39;jp.csv&#39;)
+
+#get the  min and max population for plotting legend 
+min&lt;- jp_cities$population %&gt;% na.omit() %&gt;% min()
+max&lt;- jp_cities$population %&gt;% na.omit() %&gt;% max()  
+
+#plot
+ggplot(data = japan_coast) +
+  geom_sf(col=&#39;gray79&#39;, fill=&#39;antiquewhite&#39;) +
+  geom_point(data=jp_cities, aes(x=lng, y=lat, size=population, col=population))+
+  scale_colour_viridis(option=&#39;plasma&#39;, limits=c(min, max), breaks=seq(min, max, by=5000000))+  
+  scale_size_continuous(limits=c(min, max), breaks=seq(min, max, by=5000000))+
+  guides(color= guide_legend(), size=guide_legend())+ #need to add this, and the same breaks for colour and size to combine legends
+  annotation_scale(location = &quot;tl&quot;)+   #scale bar (tl= top left) -part of ggspatial package
+  annotation_north_arrow(location = &quot;br&quot;, which_north = &quot;true&quot;)+ #north arrow, br=bottom right
+  theme_bw()          </code></pre>
+<pre><code>## Warning: Removed 16 rows containing missing values (geom_point).</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-6.png" width="672" /></p>
+<pre class="r"><code>#plotting maps based upon IUCN cat (multiple panels)
+japan&lt;-map_data(&#39;japan&#39;) #japan map for base with lat lon data
+
+plot2&lt;- ggplot()+
+  geom_path(data=japan, aes(long, lat, group=group), size=0.25 )+  #geom path is the basemap
+  geom_sf(data=japan_marinePA, col=&#39;cadetblue&#39;, fill=&#39;cadetblue&#39;)+
+  facet_wrap(~IUCN_CAT)+
+  theme_bw()
+
+plot2</code></pre>
+<p><img src="mapping_markdown_files/figure-html/unnamed-chunk-4-7.png" width="672" /></p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
